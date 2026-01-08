@@ -1,0 +1,9 @@
+TA2.ipynb
+venv
+.env
+
+pdf_cvs/
+landing_page/
+kaggle.json
+
+source dataset.txt
