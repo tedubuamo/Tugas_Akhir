@@ -6,4 +6,4 @@ pdf_cvs/
 landing_page/
 kaggle.json
 
-source dataset.txt
+./dataset
