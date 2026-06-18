@@ -1,0 +1,35 @@
+services:
+  backend:
+    build: .
+    container_name: jobmatcher-backend
+    restart: unless-stopped
+    volumes:
+      - ./landing_page/backend/my_db.db:/app/my_db.db
+      - ./landing_page/backend/final_bert_model_update:/app/final_bert_model_update:ro
+    env_file:
+      - ./landing_page/backend/.env
+    networks:
+      - internal
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: jobmatcher-caddy
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./landing_page/frontend:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - internal
+      - caddy
+
+networks:
+  internal:
+    driver: bridge
+  caddy:
+    external: true
+
+volumes:
+  caddy_data:
+  caddy_config:

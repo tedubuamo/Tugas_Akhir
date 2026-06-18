@@ -525,7 +525,7 @@
         formData.append("pdf", file);
 
         try {
-            const res = await fetch("http://127.0.0.1:5002/extract-cv/", { 
+            const res = await fetch("/extract-cv/", {
                 method: "POST", 
                 body: formData,
                 headers: {

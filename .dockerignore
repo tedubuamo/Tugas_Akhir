@@ -1,0 +1,15 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.env
+dataset/
+pdf_cvs/
+landing_page/backend/final_bert_model_update/
+landing_page/backend/final_bert_model_update.zip
+landing_page/backend/my_db.db
+landing_page/backend/__pycache__/
+*.ipynb
+Preprocessing/
