@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>JobMatcher Pro — Temukan Pekerjaan yang Cocok</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-container-lowest": "#ffffff",
+                "on-secondary-container": "#586377",
+                "secondary-fixed": "#d8e3fa",
+                "tertiary": "#00647a",
+                "inverse-on-surface": "#ecf0ff",
+                "on-error-container": "#93000a",
+                "secondary": "#545f72",
+                "tertiary-fixed": "#b3ebff",
+                "surface-bright": "#f9f9ff",
+                "on-background": "#161c27",
+                "primary": "#005ea3",
+                "surface-container": "#e8eeff",
+                "primary-fixed-dim": "#a1c9ff",
+                "secondary-fixed-dim": "#bcc7dd",
+                "surface-container-low": "#f1f3ff",
+                "tertiary-container": "#007f99",
+                "on-primary-fixed-variant": "#00487f",
+                "on-surface": "#161c27",
+                "surface": "#f9f9ff",
+                "error": "#ba1a1a",
+                "on-primary-fixed": "#001c37",
+                "inverse-surface": "#2a303d",
+                "on-secondary": "#ffffff",
+                "inverse-primary": "#a1c9ff",
+                "outline": "#717783",
+                "on-tertiary": "#ffffff",
+                "surface-variant": "#dde2f3",
+                "on-primary": "#ffffff",
+                "surface-dim": "#d4daea",
+                "on-tertiary-fixed-variant": "#004e5f",
+                "on-secondary-fixed-variant": "#3c475a",
+                "secondary-container": "#d5e0f7",
+                "on-surface-variant": "#404752",
+                "on-tertiary-fixed": "#001f27",
+                "surface-container-highest": "#2a303d",
+                "primary-fixed": "#d2e4ff",
+                "on-primary-container": "#fdfcff",
+                "outline-variant": "#c0c7d3",
+                "error-container": "#ffdad6",
+                "on-secondary-fixed": "#111c2c",
+                "tertiary-fixed-dim": "#5cd5f8",
+                "primary-container": "#0077cc",
+                "surface-tint": "#0061a7",
+                "on-error": "#ffffff",
+                "on-tertiary-container": "#f9fdff",
+                "surface-container-high": "#e3e8f9",
+                "background": "#f9f9ff"
+        },
+        "borderRadius": {
+                "DEFAULT": "1rem",
+                "lg": "2rem",
+                "xl": "3rem",
+                "full": "9999px"
+        },
+        "spacing": {},
+        "fontFamily": {
+                "headline": [
+                        "DM Sans", "sans-serif"
+                ],
+                "display": [
+                        "DM Sans", "sans-serif"
+                ],
+                "body": [
+                        "DM Sans", "sans-serif"
+                ],
+                "label": [
+                        "DM Sans", "sans-serif"
+                ],
+                "sans": [
+                        "DM Sans", "sans-serif"
+                ]
+        },
+        "fontSize": {},
+        animation: { 
+          'fade-in': 'fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+          'slide-up': 'slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+          'bounce-subtle': 'bounceSubtle 3s ease-in-out infinite'
+        },
+        keyframes: { 
+          fadeIn: { '0%': { opacity: '0', transform: 'translateY(15px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+          slideUp: { '0%': { opacity: '0', transform: 'translateY(40px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+          bounceSubtle: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } }
+        }
+      }
+    }
+  }
+</script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;display=swap" rel="stylesheet"/>
+<style>
+    body { font-family: 'DM Sans', sans-serif; }
+    
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #c0c7d3; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #717783; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #005ea3 0%, #00647a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .feature-card {
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 25px 30px -5px rgba(0, 94, 163, 0.15);
+    }
+
+    .cta-button {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .cta-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.25);
+      transition: left 0.7s ease;
+      z-index: 0;
+    }
+
+    .cta-button:hover::before {
+      left: 100%;
+    }
+
+    .cta-button span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .stats-number {
+      font-size: 2.75rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #005ea3 0%, #00647a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest dark:bg-inverse-surface text-on-surface dark:text-inverse-on-surface transition-colors duration-500">
+<!-- Navigation/Header -->
+<header class="sticky top-0 z-50 bg-surface/80 dark:bg-surface-container-highest/80 backdrop-blur-md border-b border-outline-variant dark:border-on-surface-variant">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+<div class="flex items-center">
+<div class="w-12 h-12 mr-1">
+<!-- Logo untuk mode terang -->
+<img 
+  alt="AI Logo Light" 
+  class="w-full h-full hidden dark:hidden" 
+  id="headerImageLight" 
+  src="public/LogoHitam.png"/>
+<!-- Logo untuk mode gelap -->
+<img 
+  alt="AI Logo Dark" 
+  class="w-full h-full hidden dark:block" 
+  id="headerImageDark" 
+  src="public/LogoPutih.png"/>
+</div>
+<div>
+<h1 class="text-2xl font-semibold tracking-tight">Job<span class="text-primary">Matcher</span></h1>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wider font-bold dark:text-on-primary">AI-Powered Match</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<a class="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-bold text-sm transition-all duration-300 shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30" href="analyzer.html">
+          Mulai Analisis
+        </a>
+<button class="p-2.5 rounded-full bg-surface-container-high dark:bg-on-surface-variant hover:bg-outline-variant dark:hover:bg-outline transition-all text-sm font-bold" id="darkToggle">🌙 Mode</button>
+</div>
+</div>
+</header>
+<!-- Hero Section -->
+<section class="relative py-24 sm:py-36 overflow-hidden">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary-container/30 via-surface to-secondary-container/30 dark:from-on-primary-container/30 dark:via-inverse-surface dark:to-on-secondary-container/30"></div>
+<div class="absolute -top-40 -right-40 w-96 h-96 bg-primary-container/50 rounded-full blur-3xl opacity-60 mix-blend-multiply dark:mix-blend-overlay"></div>
+<div class="absolute -bottom-20 -left-20 w-80 h-80 bg-tertiary-fixed/50 rounded-full blur-3xl opacity-60 mix-blend-multiply dark:mix-blend-overlay"></div>
+<div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center space-y-8 mb-20">
+<h2 class="text-5xl sm:text-7xl font-bold gradient-text animation-slide-up leading-tight">
+          Temukan Pekerjaan <br/> yang Sempurna untuk Anda
+        </h2>
+<p class="text-xl text-on-surface-variant dark:text-surface-variant max-w-2xl mx-auto animation-slide-up leading-relaxed" style="animation-delay: 0.1s;">
+          Dengan teknologi AI terdepan, kami menganalisis CV Anda dan merekomendasikan lowongan kerja yang paling sesuai dengan kualifikasi dan pengalaman Anda.
+        </p>
+</div>
+<!-- Hero Visual -->
+<div class="bg-white/60 dark:bg-inverse-surface/60  rounded-xl border border-white/80 dark:border-on-surface-variant/50 p-12 sm:p-16 backdrop-blur-md animation-fade-in shadow-2xl shadow-primary/10 max-w-4xl mx-auto" style="animation-delay: 0.2s;">
+<div class="grid grid-cols-3 gap-6 sm:gap-12 text-center">
+<div class="space-y-3">
+<div class="stats-number">500+</div>
+<p class="text-sm dark:text-on-primary font-bold text-outline uppercase tracking-wider">Lowongan Kerja</p>
+</div>
+<div class="space-y-3">
+<div class="stats-number">98%</div>
+<p class="text-sm dark:text-on-primary font-bold text-outline uppercase tracking-wider">Akurasi Kecocokan</p>
+</div>
+<div class="space-y-3">
+<div class="stats-number">Al</div>
+<p class="text-sm dark:text-on-primary font-bold text-outline uppercase tracking-wider">Neural Analysis</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Section -->
+<section class="py-24 sm:py-36 bg-surface-container-lowest dark:bg-surface-container-highest">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-20">
+<h3 class="text-3xl sm:text-5xl font-bold mb-6 text-on-surface dark:text-inverse-on-surface">Bagaimana JobMatcher Bekerja?</h3>
+<p class="text-xl text-on-surface-variant dark:text-surface-variant">Tiga langkah mudah untuk menemukan pekerjaan impian Anda</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<!-- Feature 1 -->
+<div class="feature-card bg-surface dark:bg-inverse-surface rounded-xl p-10 border border-outline-variant dark:border-on-surface-variant shadow-sm">
+<div class="h-16 w-16 rounded-full bg-secondary-container dark:bg-on-secondary-container flex items-center justify-center text-3xl mb-8">📄</div>
+<h4 class="text-2xl font-bold mb-4">Upload CV Anda</h4>
+<p class="text-on-surface-variant dark:text-surface-variant text-base leading-relaxed">
+            Unggah CV dalam format PDF. Sistem kami siap menganalisis dokumen Anda dengan teknologi OCR dan AI terkini.
+          </p>
+<div class="mt-8 pt-8 border-t border-outline-variant dark:border-on-surface-variant">
+<span class="text-sm font-bold text-secondary dark:text-secondary-fixed uppercase tracking-wider">Max 5MB</span>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="feature-card bg-surface dark:bg-inverse-surface rounded-xl p-10 border border-outline-variant dark:border-on-surface-variant shadow-sm">
+<div class="h-16 w-16 rounded-full bg-primary-container dark:bg-on-primary-container flex items-center justify-center text-3xl mb-8">🧠</div>
+<h4 class="text-2xl font-bold mb-4">AI Menganalisis</h4>
+<p class="text-on-surface-variant dark:text-surface-variant text-base leading-relaxed">
+            Model AI kami mengekstrak informasi pendidikan, pengalaman, dan skill dari CV. Hasil analisis diolah dengan NLP dan Machine Learning.
+          </p>
+<div class="mt-8 pt-8 border-t border-outline-variant dark:border-on-surface-variant">
+<span class="text-sm font-bold text-primary dark:text-primary-fixed uppercase tracking-wider">Real-time Processing</span>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="feature-card bg-surface dark:bg-inverse-surface rounded-xl p-10 border border-outline-variant dark:border-on-surface-variant shadow-sm">
+<div class="h-16 w-16 rounded-full bg-tertiary-fixed dark:bg-on-tertiary-container flex items-center justify-center text-3xl mb-8">🎯</div>
+<h4 class="text-2xl font-bold mb-4">Dapatkan Rekomendasi</h4>
+<p class="text-on-surface-variant dark:text-surface-variant text-base leading-relaxed">
+            Terima daftar lowongan yang paling sesuai dengan profil Anda, diurutkan berdasarkan tingkat kecocokan (matching score).
+          </p>
+<div class="mt-8 pt-8 border-t border-outline-variant dark:border-on-surface-variant">
+<span class="text-sm font-bold text-tertiary dark:text-tertiary-fixed uppercase tracking-wider">Personalized Results</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Highlights -->
+<section class="py-24 sm:py-36 bg-surface-container dark:bg-inverse-surface/50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-20">
+<h3 class="text-3xl sm:text-5xl font-bold mb-6 text-on-surface dark:text-inverse-on-surface">Fitur-Fitur Unggulan</h3>
+<p class="text-xl text-on-surface-variant dark:text-surface-variant">Teknologi terdepan untuk pengalaman pencarian kerja yang lebih baik</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+<!-- Highlight 1 -->
+<div class="bg-surface-container-lowest dark:bg-surface-container-highest rounded-xl p-10 border border-outline-variant dark:border-on-surface-variant shadow-sm hover:shadow-md transition-shadow duration-500">
+<div class="flex gap-6">
+<div class="h-16 w-16 rounded-full bg-primary-container/50 flex-shrink-0 flex items-center justify-center text-2xl">✨</div>
+<div>
+<h4 class="font-bold text-xl mb-3">Smart CV Analysis</h4>
+<p class="text-on-surface-variant dark:text-surface-variant text-base leading-relaxed">Sistem kami mengekstrak pendidikan, pengalaman kerja, dan skill dengan akurasi tinggi menggunakan AI dan OCR.</p>
+</div>
+</div>
+</div>
+<!-- Highlight 2 -->
+<div class="bg-surface-container-lowest dark:bg-surface-container-highest rounded-xl p-10 border border-outline-variant dark:border-on-surface-variant shadow-sm hover:shadow-md transition-shadow duration-500">
+<div class="flex gap-6">
+<div class="h-16 w-16 rounded-full bg-secondary-container/50 flex-shrink-0 flex items-center justify-center text-2xl">🔍</div>
+<div>
+<h4 class="font-bold text-xl mb-3">Database Lengkap</h4>
+<p class="text-on-surface-variant dark:text-surface-variant text-base leading-relaxed">Akses lebih dari 500+ lowongan kerja dari berbagai perusahaan dan industri di seluruh negara.</p>
+</div>
+</div>
+</div>
+<!-- Highlight 3 -->
+<div class="bg-surface-container-lowest dark:bg-surface-container-highest rounded-xl p-10 border border-outline-variant dark:border-on-surface-variant shadow-sm hover:shadow-md transition-shadow duration-500">
+<div class="flex gap-6">
+<div class="h-16 w-16 rounded-full bg-tertiary-fixed/50 flex-shrink-0 flex items-center justify-center text-2xl">📊</div>
+<div>
+<h4 class="font-bold text-xl mb-3">Matching Score</h4>
+<p class="text-on-surface-variant dark:text-surface-variant text-base leading-relaxed">Setiap lowongan ditampilkan dengan skor kecocokan yang transparan, memudahkan Anda dalam pemilihan.</p>
+</div>
+</div>
+</div>
+<!-- Highlight 4 -->
+<div class="bg-surface-container-lowest dark:bg-surface-container-highest rounded-xl p-10 border border-outline-variant dark:border-on-surface-variant shadow-sm hover:shadow-md transition-shadow duration-500">
+<div class="flex gap-6">
+<div class="h-16 w-16 rounded-full bg-surface-variant flex-shrink-0 flex items-center justify-center text-2xl">🌙</div>
+<div>
+<h4 class="font-bold text-xl mb-3">Dark Mode</h4>
+<p class="text-on-surface-variant dark:text-surface-variant text-base leading-relaxed">Interface yang nyaman untuk digunakan kapan saja, dengan dukungan dark mode untuk kesehatan mata Anda.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Tech Stack -->
+<section class="py-24 sm:py-36 bg-surface-container-lowest dark:bg-surface-container-highest">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-16">
+<h3 class="text-3xl sm:text-4xl font-bold mb-4 text-on-surface dark:text-inverse-on-surface">Powered By Advanced Technology</h3>
+<p class="text-xl text-on-surface-variant dark:text-surface-variant">Stack teknologi modern untuk performa optimal</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+<div class="bg-surface dark:bg-inverse-surface rounded-[2rem] p-8 text-center border border-outline-variant dark:border-on-surface-variant shadow-sm">
+<div class="text-3xl mb-4">🤖</div>
+<p class="font-bold text-base text-on-surface dark:text-inverse-on-surface">Transformers AI</p>
+<p class="text-sm text-outline mt-2 font-medium">BERT, NLP Models</p>
+</div>
+<div class="bg-surface dark:bg-inverse-surface rounded-[2rem] p-8 text-center border border-outline-variant dark:border-on-surface-variant shadow-sm">
+<div class="text-3xl mb-4">🐍</div>
+<p class="font-bold text-base text-on-surface dark:text-inverse-on-surface">Python Backend</p>
+<p class="text-sm text-outline mt-2 font-medium">Flask API</p>
+</div>
+<div class="bg-surface dark:bg-inverse-surface rounded-[2rem] p-8 text-center border border-outline-variant dark:border-on-surface-variant shadow-sm">
+<div class="text-3xl mb-4">🎨</div>
+<p class="font-bold text-base text-on-surface dark:text-inverse-on-surface">Tailwind CSS</p>
+<p class="text-sm text-outline mt-2 font-medium">Modern UI Framework</p>
+</div>
+<div class="bg-surface dark:bg-inverse-surface rounded-[2rem] p-8 text-center border border-outline-variant dark:border-on-surface-variant shadow-sm">
+<div class="text-3xl mb-4">📄</div>
+<p class="font-bold text-base text-on-surface dark:text-inverse-on-surface">PDF Processing</p>
+<p class="text-sm text-outline mt-2 font-medium">PyPDF2, pdfplumber</p>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="relative py-28 sm:py-40 overflow-hidden bg-primary dark:bg-on-primary-container">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary-container/30 via-surface to-secondary-container/30 dark:from-on-primary-container/30 dark:via-inverse-surface dark:to-on-secondary-container/30"></div>
+<div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+<div class="space-y-10">
+<h2 class="text-4xl sm:text-5xl font-bold text-on-primary dark:text-on-primary leading-tight">Siap Menemukan Pekerjaan Impian?</h2>
+<p class="text-xl text-primary-fixed dark:text-on-primary max-w-2xl mx-auto font-medium">
+          Mulai sekarang dan dapatkan rekomendasi lowongan yang paling sesuai dengan kualifikasi Anda dalam hitungan detik.
+        </p>
+<a class="cta-button inline-block px-10 py-5 bg-on-primary text-primary font-bold text-lg rounded-full shadow-xl shadow-primary-container/50 hover:shadow-2xl hover:scale-105 transition-all duration-500" href="analyzer.html">
+<span>Coba Sekarang →</span>
+</a>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-inverse-surface text-surface-variant py-16 border-t border-on-surface-variant"> 
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+<div>
+<div class="flex items-center gap-3 mb-6">
+<span class="font-bold text-inverse-on-surface text-lg">JobMatcher Pro</span>
+</div>
+<p class="text-base leading-relaxed">AI-powered job matching untuk masa depan karir yang lebih cerah dan terarah.</p>
+</div>
+<div>
+<h4 class="font-bold text-inverse-on-surface mb-6 text-lg">Fitur</h4>
+<ul class="space-y-3 text-base">
+<li><a class="hover:text-primary-fixed transition-colors duration-300" href="#">CV Analysis</a></li>
+<li><a class="hover:text-primary-fixed transition-colors duration-300" href="#">Job Matching</a></li>
+<li><a class="hover:text-primary-fixed transition-colors duration-300" href="#">Recommendations</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-inverse-on-surface mb-6 text-lg">Tentang</h4>
+<ul class="space-y-3 text-base">
+<li><a class="hover:text-primary-fixed transition-colors duration-300" href="#">Technology</a></li>
+<li><a class="hover:text-primary-fixed transition-colors duration-300" href="#">Data Privacy</a></li>
+<li><a class="hover:text-primary-fixed transition-colors duration-300" href="#">Contact</a></li>
+</ul>
+</div>
+</div>
+<div class="border-t border-on-surface-variant pt-8">
+<p class="text-center text-sm font-medium">© 2026 JobMatcher Pro. Semua hak dilindungi.</p>
+</div>
+</div>
+</footer>
+<script>
+    // Dark Mode Toggle
+    const darkToggle = document.getElementById('darkToggle');
+    const headerImageLight = document.getElementById('headerImageLight');
+    const headerImageDark = document.getElementById('headerImageDark');
+    
+    // Function to update logo visibility
+    const updateLogoDisplay = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        headerImageLight.classList.add('hidden');
+        headerImageLight.classList.remove('dark:hidden');
+        headerImageDark.classList.remove('hidden');
+        headerImageDark.classList.add('dark:block');
+      } else {
+        headerImageLight.classList.remove('hidden');
+        headerImageLight.classList.add('dark:hidden');
+        headerImageDark.classList.add('hidden');
+        headerImageDark.classList.remove('dark:block');
+      }
+    };
+    
+    // Check if user has dark mode preference
+    if (localStorage.getItem('darkMode') === 'true' || 
+        (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      darkToggle.textContent = '☀️ Mode';
+    }
+    
+    // Update logo on initial load
+    updateLogoDisplay();
+
+    darkToggle.onclick = () => {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('darkMode', isDark);
+      darkToggle.textContent = isDark ? '☀️ Mode' : '🌙 Mode';
+      updateLogoDisplay();
+    };
+  </script>
+</body></html>

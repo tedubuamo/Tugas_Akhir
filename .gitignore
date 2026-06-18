@@ -3,7 +3,10 @@ venv
 .env
 
 pdf_cvs/
-landing_page/
 kaggle.json
 
-./dataset
+dataset/
+landing_page/backend/final_bert_model_update/
+landing_page/backend/*.zip
+landing_page/backend/final_bert_model_update/final_bert_model_update.zip
+landing_page/backend/app.ipynb
