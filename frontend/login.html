@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>JobMatcher Pro — Admin Login</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-container-lowest": "#ffffff",
+                "on-secondary-container": "#586377",
+                "secondary-fixed": "#d8e3fa",
+                "tertiary": "#00647a",
+                "inverse-on-surface": "#ecf0ff",
+                "on-error-container": "#93000a",
+                "secondary": "#545f72",
+                "tertiary-fixed": "#b3ebff",
+                "surface-bright": "#f9f9ff",
+                "on-background": "#161c27",
+                "primary": "#005ea3",
+                "surface-container": "#e8eeff",
+                "primary-fixed-dim": "#a1c9ff",
+                "secondary-fixed-dim": "#bcc7dd",
+                "surface-container-low": "#f1f3ff",
+                "tertiary-container": "#007f99",
+                "on-primary-fixed-variant": "#00487f",
+                "on-surface": "#161c27",
+                "surface": "#f9f9ff",
+                "error": "#ba1a1a",
+                "on-primary-fixed": "#001c37",
+                "inverse-surface": "#2a303d",
+                "on-secondary": "#ffffff",
+                "inverse-primary": "#a1c9ff",
+                "outline": "#717783",
+                "on-tertiary": "#ffffff",
+                "surface-variant": "#dde2f3",
+                "on-primary": "#ffffff",
+                "surface-dim": "#d4daea",
+                "on-tertiary-fixed-variant": "#004e5f",
+                "on-secondary-fixed-variant": "#3c475a",
+                "secondary-container": "#d5e0f7",
+                "on-surface-variant": "#404752",
+                "on-tertiary-fixed": "#001f27",
+                "surface-container-highest": "#dde2f3",
+                "primary-fixed": "#d2e4ff",
+                "on-primary-container": "#fdfcff",
+                "outline-variant": "#c0c7d3",
+                "error-container": "#ffdad6",
+                "on-secondary-fixed": "#111c2c",
+                "tertiary-fixed-dim": "#5cd5f8",
+                "primary-container": "#0077cc",
+                "surface-tint": "#0061a7",
+                "on-error": "#ffffff",
+                "on-tertiary-container": "#f9fdff",
+                "surface-container-high": "#e3e8f9",
+                "background": "#f9f9ff"
+        },
+        "borderRadius": {
+                "DEFAULT": "1rem",
+                "lg": "2rem",
+                "xl": "3rem",
+                "full": "9999px"
+        },
+        "spacing": {},
+        "fontFamily": {
+                "sans": [
+                        "DM Sans", "sans-serif"
+                ],
+                "headline": [
+                        "DM Sans", "sans-serif"
+                ],
+                "display": [
+                        "DM Sans", "sans-serif"
+                ],
+                "body": [
+                        "DM Sans", "sans-serif"
+                ],
+                "label": [
+                        "DM Sans", "sans-serif"
+                ]
+        },
+        "fontSize": {}
+},
+    },
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;display=swap" rel="stylesheet"/>
+<style>
+    body { font-family: 'DM Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-primary-fixed to-surface-container text-on-surface h-screen flex flex-col transition-colors duration-300">
+<div class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+<!-- Subtle organic background decoration -->
+<div class="absolute -top-24 -left-24 w-96 h-96 bg-primary-container rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob"></div>
+<div class="absolute -bottom-24 -right-24 w-96 h-96 bg-tertiary-container rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
+<div class="max-w-md w-full space-y-8 bg-surface/90 backdrop-blur-md p-10 rounded-[3rem] shadow-[0_10px_40px_-10px_rgba(0,119,204,0.15)] border border-outline-variant/50 relative z-10">
+<div class="text-center">
+<div class="w-16 h-16 mx-auto rounded-[2rem] bg-primary-container flex items-center justify-center text-on-primary-container shadow-sm mb-6">
+<svg class="w-8 h-8" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h2 class="text-3xl font-bold text-on-surface tracking-tight">Admin Login</h2>
+<p class="mt-3 text-sm text-on-surface-variant">Masuk untuk mengelola sistem JobMatcher</p>
+</div>
+<form class="mt-8 space-y-6" id="loginForm">
+<div class="space-y-5">
+<div>
+<label class="text-sm font-semibold text-on-surface-variant" for="username">Username</label>
+<input class="mt-1.5 appearance-none block w-full px-5 py-3.5 border border-transparent rounded-full bg-surface-container-highest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm transition-all" id="username" name="username" placeholder="admin" required="" type="text"/>
+</div>
+<div>
+<label class="text-sm font-semibold text-on-surface-variant" for="password">Password</label>
+<input class="mt-1.5 appearance-none block w-full px-5 py-3.5 border border-transparent rounded-full bg-surface-container-highest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm transition-all" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+<button class="w-full flex justify-center py-4 px-5 border border-transparent rounded-full shadow-[0_4px_14px_0_rgba(0,119,204,0.39)] text-sm font-bold text-on-primary bg-primary hover:bg-on-primary-fixed-variant hover:shadow-[0_6px_20px_rgba(0,119,204,0.3)] hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200" type="submit">
+          Masuk Dashboard
+        </button>
+</form>
+<div class="text-center mt-6">
+<a class="text-sm text-primary hover:text-on-primary-fixed-variant hover:underline transition-colors font-medium" href="/">← Kembali ke Halaman Utama</a>
+</div>
+</div>
+</div>
+<script>
+    // --- DARK MODE INITIALIZATION ---
+    (function() {
+        const isDark = localStorage.getItem('darkMode') === 'true' || 
+            (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if(isDark) document.documentElement.classList.add('dark');
+    })();
+
+    // --- LOGIN LOGIC ---
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+
+      // Simulasi sukses untuk saat ini:
+      if(user === 'admin' && pass === 'admin123') {
+        localStorage.setItem('adminToken', 'dummy-token-123');
+        window.location.href = '/admin';
+      } else {
+        alert('Username atau Password salah! (Coba: admin / admin123)');
+      }
+    });
+  </script>
+</body></html>

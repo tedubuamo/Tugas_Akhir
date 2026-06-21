@@ -1,21 +1,8 @@
-jobmatcher.legain.id {
-    # API routes — proxied to Flask backend
-    handle /extract-cv/* {
-        reverse_proxy backend:5002
-    }
-    handle /set-groq-key/* {
-        reverse_proxy backend:5002
-    }
-    handle /api/* {
-        reverse_proxy backend:5002
-    }
+{$APP_DOMAIN} {
+    encode gzip zstd
 
-    # Frontend static files
-    handle {
-        root * /srv
-        try_files {path} /index.html
-        file_server
-    }
+    @backend path /extract-cv/* /set-groq-key/* /api/*
+    reverse_proxy @backend backend:5002
 
-    encode gzip
+    reverse_proxy frontend:80
 }

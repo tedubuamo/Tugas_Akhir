@@ -1,13 +1,36 @@
 services:
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: jobmatcher-backend
     restart: unless-stopped
-    volumes:
-      - ./landing_page/backend/my_db.db:/app/my_db.db
-      - ./landing_page/backend/final_bert_model_update:/app/final_bert_model_update:ro
     env_file:
-      - ./landing_page/backend/.env
+      - backend/.env
+    volumes:
+      - ./backend/my_db.db:/app/backend/my_db.db
+      - ./backend/final_bert_model_update:/app/backend/final_bert_model_update:ro
+    expose:
+      - "5002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:5002/api/jobs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: jobmatcher-frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      - backend
     networks:
       - internal
 
@@ -15,20 +38,22 @@ services:
     image: caddy:2-alpine
     container_name: jobmatcher-caddy
     restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./landing_page/frontend:/srv:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:
       - internal
-      - caddy
 
 networks:
   internal:
     driver: bridge
-  caddy:
-    external: true
 
 volumes:
   caddy_data:

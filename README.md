@@ -1,220 +1,243 @@
-# Tugas Akhir — Job Matcher
-**Ardiansyah Indra Febrianto**
+# JobMatcher VPS Setup
 
-Aplikasi pencocokan pekerjaan berbasis AI menggunakan BERT NER untuk ekstraksi CV dan Groq LLM untuk analisis.
+Setup ini memisahkan aplikasi menjadi 3 container:
 
----
+- `backend`: Flask + model inference
+- `frontend`: static HTML/CSS/JS
+- `caddy`: reverse proxy + HTTPS
 
-## Deploy dengan Docker + Caddy
+Struktur file yang dipakai:
 
-### Prasyarat
-
-- Docker & Docker Compose sudah terinstall di server
-- Domain `jobmatcher.legain.id` sudah diarahkan ke IP server (DNS A record)
-- Model BERT sudah tersedia di `landing_page/backend/final_bert_model_update/`
-
----
-
-### 1. Buat Docker Network `caddy`
-
-Network ini dipakai bersama oleh semua service yang perlu diakses via Caddy.
-
-```bash
-docker network create caddy
+```text
+Aplikasi/
+├── backend/
+│   ├── app.py
+│   ├── Dockerfile
+│   ├── .env
+│   ├── my_db.db
+│   └── final_bert_model_update/
+├── frontend/
+│   ├── Dockerfile
+│   ├── index.html
+│   ├── analyzer.html
+│   ├── admin.html
+│   ├── login.html
+│   └── public/
+├── Caddyfile
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
 ```
 
-> Jika network sudah ada, lewati langkah ini.
+## 1. Kebutuhan VPS
 
----
+- Ubuntu 22.04 / 24.04
+- Docker
+- Docker Compose plugin
+- Domain yang sudah diarahkan ke IP VPS
+- Port `80` dan `443` terbuka
 
-### 2. Isi File `.env`
+Install Docker:
 
-Edit file `landing_page/backend/.env`:
+```bash
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+Opsional agar tidak perlu `sudo`:
+
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+## 2. Upload project ke VPS
+
+Clone repo atau upload folder project ke VPS:
+
+```bash
+git clone <repo-url> jobmatcher
+cd jobmatcher
+```
+
+## 3. Siapkan file environment backend
+
+Buat `backend/.env`:
 
 ```env
-GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+GROQ_API_KEY=your_groq_api_key
 ```
 
----
+## 4. Pastikan file penting ada
 
-### 3. Struktur File Docker
+Wajib ada:
 
-```
-Aplikasi/
-├── Dockerfile                          # Build image backend Flask
-├── docker-compose.yml                  # Orkestrasi semua service
-├── Caddyfile                           # Konfigurasi reverse proxy + HTTPS
-├── .dockerignore                       # Exclude file besar dari build
-└── landing_page/
-    ├── backend/
-    │   ├── app.py
-    │   ├── my_db.db                    # SQLite database (di-mount sebagai volume)
-    │   ├── final_bert_model_update/    # Model BERT (di-mount sebagai volume)
-    │   └── .env                        # API keys (tidak ikut ke git)
-    └── frontend/
-        ├── index.html
-        ├── analyzer.html
-        └── admin.html
+- `backend/my_db.db`
+- `backend/final_bert_model_update/`
+
+Cek cepat:
+
+```bash
+ls backend
+ls backend/final_bert_model_update
 ```
 
----
+## 5. Atur domain untuk Caddy
 
-### 4. Konfigurasi `docker-compose.yml`
-
-```yaml
-services:
-  backend:
-    build: .
-    container_name: jobmatcher-backend
-    restart: unless-stopped
-    volumes:
-      - ./landing_page/backend/my_db.db:/app/my_db.db
-      - ./landing_page/backend/final_bert_model_update:/app/final_bert_model_update:ro
-    env_file:
-      - ./landing_page/backend/.env
-    networks:
-      - internal
-
-  caddy:
-    image: caddy:2-alpine
-    container_name: jobmatcher-caddy
-    restart: unless-stopped
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./landing_page/frontend:/srv:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - internal
-      - caddy
-
-networks:
-  internal:
-    driver: bridge
-  caddy:
-    external: true
-
-volumes:
-  caddy_data:
-  caddy_config:
-```
-
-**Hal yang perlu diganti jika ingin custom:**
-
-| Key | Default | Keterangan |
-|---|---|---|
-| `container_name: jobmatcher-backend` | `jobmatcher-backend` | Nama container backend |
-| `container_name: jobmatcher-caddy` | `jobmatcher-caddy` | Nama container Caddy |
-| `caddy_data` / `caddy_config` | nama volume default | Simpan TLS cert & config Caddy |
-
----
-
-### 5. Konfigurasi `Caddyfile`
+`Caddyfile` memakai placeholder env:
 
 ```caddy
-jobmatcher.legain.id {
-    handle /extract-cv/* {
-        reverse_proxy backend:5002
-    }
-    handle /set-groq-key/* {
-        reverse_proxy backend:5002
-    }
-    handle /api/* {
-        reverse_proxy backend:5002
-    }
+{$APP_DOMAIN} {
+    encode gzip zstd
 
-    handle {
-        root * /srv
-        try_files {path} /index.html
-        file_server
-    }
+    @backend path /extract-cv/* /set-groq-key/* /api/*
+    reverse_proxy @backend backend:5002
 
-    encode gzip
+    reverse_proxy frontend:80
 }
 ```
 
-**Bagian yang perlu diganti untuk subdomain lain:**
+Saat menjalankan compose, set `APP_DOMAIN`.
 
-| Bagian | Contoh nilai | Keterangan |
-|---|---|---|
-| `jobmatcher.legain.id` | `app.contoh.com` | Ganti dengan subdomain milikmu |
-| `backend:5002` | `backend:5002` | Nama service backend di docker-compose + portnya |
-| `/extract-cv/*` | sesuaikan | Tambah/hapus route sesuai endpoint Flask |
-
-**Contoh jika ingin ganti subdomain:**
-
-```caddy
-app.domainku.com {
-    handle /extract-cv/* {
-        reverse_proxy backend:5002
-    }
-    handle /api/* {
-        reverse_proxy backend:5002
-    }
-    handle {
-        root * /srv
-        file_server
-    }
-    encode gzip
-}
-```
-
-> Caddy otomatis mengurus HTTPS (Let's Encrypt) selama port 80 dan 443 terbuka di server dan DNS sudah mengarah ke IP server.
-
----
-
-### 6. Jalankan
+Contoh:
 
 ```bash
-# Build image dan jalankan semua service
-docker compose up -d --build
-
-# Cek status
-docker compose ps
-
-# Lihat log backend
-docker compose logs -f backend
-
-# Lihat log caddy
-docker compose logs -f caddy
+export APP_DOMAIN=jobmatcher.domainanda.com
 ```
 
----
+## 6. Build dan jalankan
 
-### 7. Troubleshooting
-
-**Container backend tidak mau start:**
 ```bash
-docker compose logs backend
-```
-Pastikan folder `final_bert_model_update/` sudah ada sebelum `docker compose up`.
-
-**HTTPS tidak jalan / TLS error:**
-- Pastikan port 80 dan 443 terbuka di firewall server
-- Pastikan DNS domain sudah mengarah ke IP server (cek dengan `nslookup jobmatcher.legain.id`)
-- Caddy butuh beberapa detik untuk request sertifikat pertama kali
-
-**`caddy` network tidak ditemukan:**
-```bash
-docker network create caddy
+docker compose build
 docker compose up -d
 ```
 
-**Ganti subdomain tanpa rebuild:**
-1. Edit `Caddyfile` — ganti baris pertama ke domain baru
-2. Jalankan `docker compose restart caddy`
-
----
-
-### 8. Update Aplikasi
+Cek status:
 
 ```bash
-# Pull perubahan terbaru
-git pull
-
-# Rebuild hanya backend (jika ada perubahan kode)
-docker compose up -d --build backend
-
-# Reload Caddy tanpa downtime (jika ada perubahan Caddyfile)
-docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+docker compose ps
 ```
+
+Lihat log:
+
+```bash
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f caddy
+```
+
+## 7. Akses aplikasi
+
+Jika domain dan DNS sudah benar:
+
+```text
+https://jobmatcher.domainanda.com
+```
+
+Endpoint penting:
+
+- Frontend: `/`
+- Analyzer: `/analyzer`
+- Admin: `/admin`
+- API jobs: `/api/jobs`
+- CV extraction: `/extract-cv/`
+
+## 8. Cara update aplikasi
+
+Jika ada perubahan code:
+
+```bash
+git pull
+docker compose build
+docker compose up -d
+```
+
+Jika hanya restart:
+
+```bash
+docker compose restart
+```
+
+## 9. Backup database
+
+Karena SQLite dipakai langsung dari file host:
+
+```bash
+cp backend/my_db.db backend/my_db.db.bak
+```
+
+Atau simpan ke folder backup:
+
+```bash
+mkdir -p backups
+cp backend/my_db.db backups/my_db-$(date +%F-%H%M%S).db
+```
+
+## 10. Troubleshooting
+
+### Backend gagal start
+
+```bash
+docker compose logs -f backend
+```
+
+Penyebab umum:
+
+- `backend/.env` belum ada
+- `my_db.db` tidak ada
+- folder model `final_bert_model_update` tidak ada
+- dependency ML terlalu berat untuk resource VPS
+
+### HTTPS tidak aktif
+
+Pastikan:
+
+- domain mengarah ke IP VPS
+- port `80` dan `443` terbuka
+- `APP_DOMAIN` sudah di-set sebelum `docker compose up`
+
+### Frontend terbuka tapi API gagal
+
+Cek backend:
+
+```bash
+docker compose ps
+docker compose logs -f backend
+```
+
+Cek response API:
+
+```bash
+curl https://jobmatcher.domainanda.com/api/jobs
+```
+
+### Inference lambat
+
+Normal jika VPS CPU-only dan model besar. Minimal rekomendasi:
+
+- 4 vCPU
+- 8 GB RAM
+- SSD storage
+
+## 11. Catatan deployment
+
+- Frontend dipisah ke container sendiri supaya static serving tetap ringan.
+- Backend tetap bisa serve frontend secara lokal, tapi pada deployment VPS container frontend dipakai sebagai source utama halaman web.
+- Caddy menangani reverse proxy dan TLS otomatis.
+
+## 12. File yang ditambahkan
+
+- [backend/Dockerfile](backend/Dockerfile)
+- [frontend/Dockerfile](frontend/Dockerfile)
+- [docker-compose.yml](docker-compose.yml)
+- [Caddyfile](Caddyfile)
+- [README.md](README.md)
