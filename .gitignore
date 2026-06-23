@@ -1,6 +1,11 @@
 TA2.ipynb
 venv
 .env
+.claude/
+
+# Python cache / bytecode
+__pycache__/
+*.py[cod]
 
 pdf_cvs/
 kaggle.json
