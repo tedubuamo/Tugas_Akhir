@@ -481,6 +481,27 @@
     const emptyState = document.getElementById('rightEmptyState');
     const badge = document.getElementById('statusBadge');
 
+    function setStatusBadge(status) {
+        badge.innerText = status;
+        badge.classList.remove(
+            'bg-surface-container-highest',
+            'dark:bg-slate-700',
+            'text-on-surface-variant',
+            'dark:text-slate-300',
+            'bg-green-100',
+            'dark:bg-green-900/40',
+            'text-green-700',
+            'dark:text-green-300'
+        );
+
+        if (status === 'COMPLETED') {
+            badge.classList.add('bg-green-100', 'dark:bg-green-900/40', 'text-green-700', 'dark:text-green-300');
+            return;
+        }
+
+        badge.classList.add('bg-surface-container-highest', 'dark:bg-slate-700', 'text-on-surface-variant', 'dark:text-slate-300');
+    }
+
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if(file) {
@@ -521,7 +542,7 @@
         loading.classList.remove('hidden');
         results.classList.add('hidden');
         emptyState.classList.add('hidden');
-        badge.innerText = "PROCESSING";
+        setStatusBadge("PROCESSING");
         
         const formData = new FormData();
         formData.append("pdf", file);
@@ -549,7 +570,7 @@
                 return;
             }
 
-            badge.innerText = "COMPLETED";
+            setStatusBadge("COMPLETED");
             renderData(data);
 
         } catch (err) {

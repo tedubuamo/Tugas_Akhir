@@ -986,6 +986,7 @@ def extract_education_section(cv_text):
         return ""
 
     text_lower = cv_text.lower()
+    lines = cv_text.splitlines()
     start_keywords = [
         "education", "pendidikan", "academic background", "riwayat pendidikan",
         "educational background", "academic history", "latar belakang pendidikan",
@@ -998,47 +999,76 @@ def extract_education_section(cv_text):
         "organization", "organisasi", "publication", "interest", "hobi",
     ]
 
-    start_pos = -1
-    end_pos = len(cv_text)
+    start_idx = -1
+    end_idx = len(lines)
 
-    # Require the keyword to appear at the start of a line (word-boundary safe)
-    for keyword in start_keywords:
-        match = re.search(
-            r'(?:^|\n)\s*' + re.escape(keyword) + r'\s*(?:\n|:)',
-            text_lower, re.MULTILINE
-        )
-        if match:
-            start_pos = match.start()
+    def is_section_header(raw_line, keywords):
+        line = raw_line.strip().lower()
+        if not line:
+            return False
+
+        # Normalize bullets / punctuation so headers like "EDUCATION:", "PENDIDIKAN"
+        # and "• EDUCATION" still match, while regular sentences do not.
+        normalized = re.sub(r'^[\W_]+', '', line)
+        normalized = re.sub(r'[\W_]+$', '', normalized)
+        compact = re.sub(r'\s+', ' ', normalized).strip()
+
+        for keyword in keywords:
+            keyword_lower = keyword.lower()
+            if compact == keyword_lower:
+                return True
+            if compact.startswith(keyword_lower + ':'):
+                return True
+            if compact.startswith(keyword_lower + ' -'):
+                return True
+        return False
+
+    for idx, raw_line in enumerate(lines):
+        if is_section_header(raw_line, start_keywords):
+            start_idx = idx
             break
 
-    # Softer fallback: simple substring if line-start match fails
-    if start_pos == -1:
-        for keyword in start_keywords:
-            pos = text_lower.find(keyword)
-            if pos != -1:
-                start_pos = pos
+    if start_idx != -1:
+        for idx in range(start_idx + 1, len(lines)):
+            if is_section_header(lines[idx], end_keywords):
+                end_idx = idx
                 break
 
-    if start_pos == -1:
-        # No education header found — return first 2500 chars so Groq still has context
-        return cv_text[:2500]
+        section = "\n".join(lines[start_idx:end_idx]).strip()
+        if len(section) >= 80:
+            return section
 
-    # Find end position (next section header)
-    for keyword in end_keywords:
-        match = re.search(
-            r'(?:^|\n)\s*' + re.escape(keyword) + r'\s*(?:\n|:)',
-            text_lower[start_pos + 15:], re.MULTILINE
-        )
-        if match:
-            candidate = start_pos + 15 + match.start()
-            if candidate < end_pos:
-                end_pos = candidate
+    # Fallback: build a compact context from lines that look like education entries.
+    education_anchor = re.compile(
+        r'\b('
+        r'education|pendidikan|academic|university|universitas|college|institut|institute|'
+        r'politeknik|sekolah tinggi|bachelor|master|phd|sarjana|diploma|'
+        r'jurusan|major|program studi|prodi|field of study|'
+        r's\.?\s*[123]|d\.?\s*[1234]|b\.sc|bachelor\'?s|master\'?s'
+        r')\b',
+        re.IGNORECASE
+    )
+    windows = []
+    for idx, raw_line in enumerate(lines):
+        if education_anchor.search(raw_line):
+            windows.append((max(0, idx - 1), min(len(lines), idx + 3)))
 
-    section = cv_text[start_pos:end_pos].strip()
-    # If extracted section is suspiciously short, supplement with surrounding context
-    if len(section) < 80:
-        return cv_text[:2500]
-    return section
+    if windows:
+        merged = []
+        for start, end in sorted(windows):
+            if not merged or start > merged[-1][1]:
+                merged.append([start, end])
+            else:
+                merged[-1][1] = max(merged[-1][1], end)
+        section_lines = []
+        for start, end in merged[:6]:
+            section_lines.extend(lines[start:end])
+        section = "\n".join(section_lines).strip()
+        if len(section) >= 40:
+            return section[:2500]
+
+    # Last resort: early text only if no clear education context was found at all.
+    return cv_text[:2500]
 
 def analyze_cv_with_groq(cv_text):
     """
@@ -1995,17 +2025,17 @@ def extract_education_regex(cv_text):
             pass
 
     # --- Major ---
-    # Search education section first (more precise), fall back to full text.
-    # All patterns use \b word-boundaries to prevent false matches inside
-    # compound words (e.g. "teknik elektro" must NOT match "politeknik elektronika").
+    # Search education section first (more precise), then fall back to
+    # education-like lines across the CV. We score explicit "major/jurusan"
+    # mentions higher than incidental keyword hits.
     major = None
     major_map = [
         # Applied variants (more specific) before generic entries
         (r'\bsains\s+data\s+terapan\b|\bapplied\s+data\s+science\b', 'Applied Data Science'),
+        (r'\bdata\s+science\b|\bdata\s+sains\b|\bsains\s+data\b|\bilmu\s+data\b', 'Data Science'),
         (r'\bteknik\s+informatika\b|\bcomputer\s+science\b|\bilmu\s+komputer\b', 'Computer Science'),
         (r'\bsistem\s+informasi\b|\binformation\s+systems?\b', 'Information Systems'),
         (r'\bteknologi\s+informasi\b|\binformation\s+technology\b', 'Information Technology'),
-        (r'\bdata\s+science\b|\bdata\s+sains\b|\bsains\s+data\b|\bilmu\s+data\b', 'Data Science'),
         (r'\bkecerdasan\s+buatan\b|\bartificial\s+intelligence\b', 'Artificial Intelligence'),
         (r'\brekayasa\s+perangkat\s+lunak\b|\bsoftware\s+engineering\b', 'Software Engineering'),
         (r'\bteknik\s+komputer\b|\bcomputer\s+engineering\b', 'Computer Engineering'),
@@ -2032,21 +2062,128 @@ def extract_education_regex(cv_text):
         (r'\barsitektur\b|\barchitecture\b', 'Architecture'),
     ]
 
-    # Pass 1: search only the education section for precision
-    edu_section = extract_education_section(text)
-    for pattern, label in major_map:
-        if re.search(pattern, edu_section, re.IGNORECASE):
-            major = label
-            break
+    explicit_major_patterns = [
+        r'(?:major|jurusan|program studi|prodi|field of study)\s*[:\-]?\s*([A-Za-z&.,/() \-]{3,120})',
+        r'(?:bachelor|master|diploma|sarjana|s\.?\s*[123]|d\.?\s*[1234])[^.\n]{0,80}?\bin\s+([A-Za-z&.,/() \-]{3,120})',
+    ]
 
-    # Pass 2: if education section gave nothing, scan full text as fallback
+    def _pick_best_major(source_text):
+        if not source_text:
+            return None
+
+        candidates = []
+        source_lines = [line.strip() for line in source_text.splitlines() if line.strip()]
+        proximity_hint = re.compile(
+            r'\b(university|universitas|college|institut|institute|politeknik|sekolah tinggi|'
+            r'bachelor|master|phd|sarjana|diploma|s\.?\s*[123]|d\.?\s*[1234])\b',
+            re.IGNORECASE
+        )
+
+        for idx, line in enumerate(source_lines):
+            base_score = 0
+            if re.search(r'\b(major|jurusan|program studi|prodi|field of study)\b', line, re.IGNORECASE):
+                base_score += 80
+            if proximity_hint.search(line):
+                base_score += 25
+
+            for explicit_pattern in explicit_major_patterns:
+                for explicit_match in re.finditer(explicit_pattern, line, re.IGNORECASE):
+                    snippet = explicit_match.group(1).strip(" -:;,.)(")
+                    for pattern, label in major_map:
+                        match = re.search(pattern, snippet, re.IGNORECASE)
+                        if match:
+                            candidates.append((base_score + 60 + len(match.group(0)), idx, label))
+
+            for pattern, label in major_map:
+                for match in re.finditer(pattern, line, re.IGNORECASE):
+                    score = base_score + len(match.group(0))
+                    candidates.append((score, idx, label))
+
+        if not candidates:
+            return None
+
+        candidates.sort(key=lambda item: (-item[0], item[1]))
+        return candidates[0][2]
+
+    edu_section = extract_education_section(text)
+    major = _pick_best_major(edu_section)
+
     if not major:
-        for pattern, label in major_map:
-            if re.search(pattern, text, re.IGNORECASE):
-                major = label
-                break
+        education_like_lines = []
+        line_anchor = re.compile(
+            r'\b(education|pendidikan|academic|university|universitas|college|institut|institute|'
+            r'politeknik|sekolah tinggi|major|jurusan|program studi|prodi|field of study|'
+            r'bachelor|master|phd|sarjana|diploma|s\.?\s*[123]|d\.?\s*[1234])\b',
+            re.IGNORECASE
+        )
+        for raw_line in text.splitlines():
+            if line_anchor.search(raw_line):
+                education_like_lines.append(raw_line)
+        major = _pick_best_major("\n".join(education_like_lines))
 
     return {"degree": degree, "major": major, "gpa": gpa}
+
+
+def resolve_major_conflict(cv_text, groq_major=None, regex_major=None):
+    """
+    Reconcile conflicting major predictions.
+    Prefer the value that is explicitly supported by the education section,
+    especially when Groq returns a broader IT family label but regex finds a
+    more specific program such as Data Science.
+    """
+    if not groq_major:
+        return regex_major
+    if not regex_major:
+        return groq_major
+    if groq_major.strip().lower() == regex_major.strip().lower():
+        return groq_major
+
+    edu_section = extract_education_section(cv_text or "")
+    edu_lower = edu_section.lower()
+
+    alias_map = {
+        "Applied Data Science": [r'\bapplied\s+data\s+science\b', r'\bsains\s+data\s+terapan\b'],
+        "Data Science": [r'\bdata\s+science\b', r'\bdata\s+sains\b', r'\bsains\s+data\b', r'\bilmu\s+data\b'],
+        "Computer Science": [r'\bcomputer\s+science\b', r'\bteknik\s+informatika\b', r'\bilmu\s+komputer\b'],
+        "Computer Science or Informatics": [r'\bcomputer\s+science\b', r'\binformatics\b', r'\bteknik\s+informatika\b', r'\bilmu\s+komputer\b'],
+        "Informatics Engineering": [r'\binformatics\s+engineering\b', r'\bteknik\s+informatika\b'],
+        "Information Systems": [r'\binformation\s+systems?\b', r'\bsistem\s+informasi\b'],
+        "Information Technology": [r'\binformation\s+technology\b', r'\bteknologi\s+informasi\b'],
+    }
+
+    def supported_by_education(major_name):
+        patterns = alias_map.get(major_name, [r'\b' + re.escape(major_name.lower()) + r'\b'])
+        return any(re.search(pattern, edu_lower, re.IGNORECASE) for pattern in patterns)
+
+    regex_supported = supported_by_education(regex_major)
+    groq_supported = supported_by_education(groq_major)
+
+    data_science_family = {"Applied Data Science", "Data Science"}
+    generic_it_family = {
+        "Computer Science",
+        "Computer Science or Informatics",
+        "Informatics Engineering",
+        "Information Systems",
+        "Information Technology",
+    }
+
+    if regex_major in data_science_family and groq_major in generic_it_family and regex_supported:
+        print(f"  ↳ major conflict resolved in favor of regex: {regex_major} over {groq_major}")
+        return regex_major
+
+    if regex_supported and not groq_supported:
+        print(f"  ↳ major conflict resolved by education-section evidence: {regex_major} over {groq_major}")
+        return regex_major
+
+    if groq_supported and not regex_supported:
+        return groq_major
+
+    # If both are plausible, prefer the more specific non-generic result.
+    if regex_major not in generic_it_family and groq_major in generic_it_family:
+        print(f"  ↳ major conflict resolved by specificity: {regex_major} over {groq_major}")
+        return regex_major
+
+    return groq_major
 
 
 def extract_skills_section_only(cv_text):
@@ -2117,9 +2254,10 @@ def extract_cv():
         print("\n🤖 Analyzing education...")
         regex_edu = extract_education_regex(full_text)
         groq_education = analyze_education_with_groq(full_text)
-        # Prefer Groq but fill gaps with regex
+        # Prefer Groq for structure, but resolve major conflicts with regex
+        # when the education section explicitly supports a different result.
         degree = groq_education.get('degree') or regex_edu.get('degree')
-        major  = groq_education.get('major')  or regex_edu.get('major')
+        major  = resolve_major_conflict(full_text, groq_education.get('major'), regex_edu.get('major'))
         gpa    = groq_education.get('gpa')    or regex_edu.get('gpa')
 
         # Hard last-resort: if degree is still null, run a broad scan over the entire text
